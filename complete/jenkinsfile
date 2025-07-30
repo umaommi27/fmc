@@ -1,0 +1,87 @@
+pipeline {
+    agent {
+        label 'FMCC_NODE_LB' // Runs all stages on a node with this label
+    }
+    tools {
+        jdk 'JDK17'
+        nodejs 'node23'
+    }
+    //environment {
+        //SCANNER_HOME = tool 'sonar-scanner'
+    //}
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+        stage('Checkout from Git') {
+            steps {
+                git branch: 'main', url: 'https://github.com/umaommi27/fmc.git'
+                sh 'ls -la'  // Verify files after checkout
+    sh 'mvn clean package -DskipTests'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                sh '/opt/sonarscanner1/sonar-scanner/bin/sonar-scanner ' +
+                         '-Dsonar.projectName=FMCC_sonarqube_Project ' +
+                         '-Dsonar.projectVersion=FMCC_sonarqube_Project ' +
+                         '-Dsonar.projectKey=1.0 ' +
+                         '-Dsonar.sources=. ' +
+                         '-Dsonar.java.binaries=./target/classes ' +
+                         '-Dsonar.host.url=http://localhost:9000 ' +
+                         '-Dsonar.token=sqa_9dc42563a9dd728e56c13c25e4ca066cc99399c8'
+                }
+            }
+        
+        //stage('Quality Gate') {
+            //steps {
+                //script {
+                    //waitForQualityGate abortPipeline: false, credentialsId: 'sqa_efe87919cd591baf02f90f4b5fe23341e370b910'
+                //}
+            //}
+        //}
+       
+        
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    //withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
+                        sh ''' 
+                        echo "Building Docker image..."
+                        chmod 775  ${WORKSPACE}/docker_folder/target/classes
+                        docker build --no-cache -t umaommi27/fmc:latest -f ${WORKSPACE}/docker_folder/target/classes
+
+                        echo "Pushing Docker image to registry..."
+                        docker login --username umaommi27 --password Sainik_2427
+                        docker push umaommi27/fmc:latest
+                        '''
+                    //}
+                }
+            }
+        }
+        stage('Deploy to Container') {
+            steps {
+                sh ''' 
+                echo "Stopping and removing old container..."
+                docker stop fmc || true
+                docker rm fmc || true
+
+                echo "Running new container on port 3000..."
+                docker run -d --restart=always --name fmc -p 8081:8081 umaommi27/fmc:latest
+
+                echo "Checking running containers..."
+                docker ps -a
+
+                echo "Fetching logs..."
+                sleep 5  # Give time for the app to start
+                docker logs fmc
+                '''
+            }
+        }
+		
+	  }
+    }
+    
+//}
