@@ -35,7 +35,7 @@ pipeline {
                          '-Dsonar.projectVersion=FMCC_sonarqube_Project ' +
                          '-Dsonar.projectKey=1.0 ' +
                          '-Dsonar.sources=. ' +
-                         '-Dsonar.java.binaries=./target/classes ' +
+                         '-Dsonar.java.binaries= /var/lib/jenkins/jenkins_worklocation/workspace/DockerJob2/complete/target/classes ' +
                          '-Dsonar.host.url=http://localhost:9000 ' +
                          '-Dsonar.token=sqa_9dc42563a9dd728e56c13c25e4ca066cc99399c8'
                 }
