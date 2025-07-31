@@ -21,9 +21,9 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
-		sh 'cd ./complete'
-                sh  'ls -lrt'
-                sh 'mvn clean install'
+		dir('/workspace/complete') {  // Change to the directory containing pom.xml
+                    sh 'mvn clean package'
+                }
 				
             }
         }
