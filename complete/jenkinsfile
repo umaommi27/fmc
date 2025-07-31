@@ -22,7 +22,7 @@ agent {
 
         stage('Build with Maven') {
             steps {
-			    sh 'cd complete
+			    sh 'cd complete'
                 sh 'mvn clean install'
 				
             }
