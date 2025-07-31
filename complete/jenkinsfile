@@ -1,27 +1,33 @@
 pipeline {
-    agent {
+    agent any
+agent {
         label 'FMCC_NODE_LB' // Runs all stages on a node with this label
     }
-    tools {
+	tools {
         jdk 'JDK17'
-        nodejs 'node23'
     }
-    //environment {
-        //SCANNER_HOME = tool 'sonar-scanner'
-    //}
+   
     stages {
         stage('Clean Workspace') {
             steps {
                 cleanWs()
             }
         }
-        stage('Checkout from Git') {
+
+        stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/umaommi27/fmc.git'
-                sh 'ls -la'  // Verify files after checkout
-    sh 'mvn clean package -DskipTests'
             }
         }
+
+        stage('Build with Maven') {
+            steps {
+			    sh 'cd complete
+                sh 'mvn clean install'
+				
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 sh '/opt/sonarscanner1/sonar-scanner/bin/sonar-scanner ' +
@@ -34,33 +40,25 @@ pipeline {
                          '-Dsonar.token=sqa_9dc42563a9dd728e56c13c25e4ca066cc99399c8'
                 }
             }
-        
-        //stage('Quality Gate') {
-            //steps {
-                //script {
-                    //waitForQualityGate abortPipeline: false, credentialsId: 'sqa_efe87919cd591baf02f90f4b5fe23341e370b910'
-                //}
-            //}
-        //}
-       
-        
+
         stage('Docker Build & Push') {
             steps {
                 script {
                     //withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
                         sh ''' 
                         echo "Building Docker image..."
-                        chmod 775  ${WORKSPACE}/docker_folder/target/classes
-                        docker build --no-cache -t umaommi27/fmc:latest -f ${WORKSPACE}/docker_folder/target/classes
+                        chmod 775  ${WORKSPACE}/complete/dockerfile
+                        docker build --no-cache -t umaommi27/dockerjob:latest -f ${WORKSPACE}/complete/dockerfile 
 
                         echo "Pushing Docker image to registry..."
                         docker login --username umaommi27 --password Sainik_2427
-                        docker push umaommi27/fmc:latest
+                        docker push umaommi27/dockerjob:latest
                         '''
                     //}
                 }
             }
         }
+
         stage('Deploy to Container') {
             steps {
                 sh ''' 
@@ -68,8 +66,8 @@ pipeline {
                 docker stop fmc || true
                 docker rm fmc || true
 
-                echo "Running new container on port 3000..."
-                docker run -d --restart=always --name fmc -p 8081:8081 umaommi27/fmc:latest
+                echo "Running new container on port 8081..."
+                docker run -d --restart=always --name dockerjob -p 8081:8081 umaommi27/dockerjob:latest
 
                 echo "Checking running containers..."
                 docker ps -a
@@ -80,8 +78,7 @@ pipeline {
                 '''
             }
         }
-		
-	  }
     }
+
     
-//}
+}
