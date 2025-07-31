@@ -1,6 +1,5 @@
 pipeline {
-    agent any
-agent {
+    agent {
         label 'FMCC_NODE_LB' // Runs all stages on a node with this label
     }
 	tools {
