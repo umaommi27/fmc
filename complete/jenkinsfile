@@ -21,7 +21,7 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
-		dir('/workspace/complete') {  // Change to the directory containing pom.xml
+		dir('/var/lib/jenkins/jenkins_worklocation/workspace/DockerJob2') {  // Change to the directory containing pom.xml
                     sh 'mvn clean package'
                 }
 				
