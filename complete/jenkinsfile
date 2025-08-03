@@ -64,8 +64,8 @@ pipeline {
             steps {
                 sh ''' 
                 echo "Stopping and removing old container..."
-                docker stop fmc || true
-                docker rm fmc || true
+                docker stop dockerjob || true
+                docker rm dockerjob || true
 
                 echo "Running new container on port 8081..."
                 docker run -d --restart=always --name dockerjob -p 8081:8081 umaommi27/dockerjob:latest
