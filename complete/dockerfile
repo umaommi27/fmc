@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
   # Copy the JAR file into the container
-COPY ./target/*.jar app.jar
+COPY target/*.jar app.jar
 RUN ls -lrt
 
   # Expose the application's port (change if needed)
