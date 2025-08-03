@@ -69,6 +69,7 @@ pipeline {
 
                 echo "Running new container on port 8081..."
                 docker run -d --restart=always --name dockerjob -p 8081:8081 umaommi27/dockerjob:latest
+                sleep 200
 
                 echo "Checking running containers..."
                 docker ps -a
