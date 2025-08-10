@@ -1,15 +1,14 @@
-# Use an official OpenJDK base image
-FROM openjdk:17-jdk-slim
-
-  # Set the working directory inside the container
+# Use official OpenJDK 17 base image
+FROM eclipse-temurin:17-jre-jammy
+ 
+ 
+# Set working directory
 WORKDIR /app
-
-  # Copy the JAR file into the container
-COPY /var/lib/jenkins/jenkins_worklocation/workspace/DockerJob2/complete/target/rest-service-complete-0.0.1-SNAPSHOT.jar app.jar
-RUN ls -lrt
-
-  # Expose the application's port (change if needed)
+ 
+# Copy the built JAR file (change 'your-microservice.jar' to your actual JAR name)
+COPY target/rest-service-complete-0.0.1-SNAPSHOT.jar app.jar
+ 
+# Expose the port your app runs on (change 8080 if different)
 EXPOSE 8081
-  # Command to run the application
+ 
 ENTRYPOINT ["java", "-jar", "app.jar"]
-  
