@@ -49,7 +49,7 @@ pipeline {
                         echo "Building Docker image..."
                         chmod 775  ${WORKSPACE}/complete/dockerfile
                         cd ${WORKSPACE}/complete
-                        docker build --no-cache -t umaommi27/dockerjob:latest -f ${WORKSPACE}/complete/dockerfile
+                        docker build --no-cache -t umaommi27/dockerjob:latest -f ${WORKSPACE}/complete/dockerfile .
 
                         echo "Pushing Docker image to registry..."
                         docker login --username umaommi27 --password Sainik_2427
