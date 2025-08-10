@@ -1,0 +1,86 @@
+pipeline {
+    agent {
+        label 'FMCC_NODE_LB' // Runs all stages on a node with this label
+    }
+	tools {
+        jdk 'JDK17'
+    }
+   
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/umaommi27/fmc.git'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+		dir('/var/lib/jenkins/jenkins_worklocation/workspace/DockerJob2/complete')  {  // Change to the directory containing pom.xml
+                    sh 'mvn clean package'
+                }
+				
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                sh '/opt/sonarscanner1/sonar-scanner/bin/sonar-scanner ' +
+                         '-Dsonar.projectName=FMCC_sonarqube_Project ' +
+                         '-Dsonar.projectVersion=FMCC_sonarqube_Project ' +
+                         '-Dsonar.projectKey=1.0 ' +
+                         '-Dsonar.sources=/var/lib/jenkins/jenkins_worklocation/workspace/DockerJob2/complete/src ' +
+                         '-Dsonar.java.binaries=/var/lib/jenkins/jenkins_worklocation/workspace/DockerJob2/complete/target/classes ' +
+                         '-Dsonar.host.url=http://localhost:9000 ' +
+                         '-Dsonar.token=sqa_9dc42563a9dd728e56c13c25e4ca066cc99399c8'
+                }
+            }
+
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    //withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
+                        sh ''' 
+                        echo "Building Docker image..."
+                        chmod 775  ${WORKSPACE}/complete/dockerfile
+                        cd ${WORKSPACE}/complete
+                        docker build --no-cache -t umaommi27/dockerjob:latest .
+
+                        echo "Pushing Docker image to registry..."
+                        docker login --username umaommi27 --password Sainik_2427
+                        docker push umaommi27/dockerjob:latest
+                        '''
+                    //}
+                }
+            }
+        }
+
+        stage('Deploy to Container') {
+            steps {
+                sh ''' 
+                echo "Stopping and removing old container..."
+                docker stop dockerjob || true
+                docker rm dockerjob || true
+
+                echo "Running new container on port 8081..."
+                docker run -d --restart=always --name dockerjob -p 8081:8080 umaommi27/dockerjob:latest
+                sleep 200
+
+                echo "Checking running containers..."
+                docker ps -a
+
+                echo "Fetching logs..."
+                sleep 5  # Give time for the app to start
+                docker logs fmc
+                '''
+            }
+        }
+    }
+
+    
+}
